@@ -1,175 +1,158 @@
 # RAGGauge — RAG Evaluation with LLM-as-a-Judge
 
-**A systematic approach to evaluating Retrieval-Augmented Generation beyond answer generation.**
+**RAGGauge** is a Retrieval-Augmented Generation (RAG) evaluation project focused on measuring the quality and reliability of generated answers. It combines **LLM-as-a-Judge evaluation with LangSmith experiment tracking** to assess how well a RAG pipeline retrieves relevant information and generates context-grounded responses.
 
-RAGGauge is a Retrieval-Augmented Generation (RAG) evaluation project designed to assess the quality and reliability of a business knowledge-base question-answering system. It combines semantic retrieval, context-grounded answer generation, LLM-as-a-Judge evaluation, and experiment tracking in a single workflow.
+🔗 **GitHub Repository:** [Evaluation-of-Rag](https://github.com/jobayertalha/Evaluation-of-Rag)
 
-Rather than evaluating a RAG system solely by its generated responses, RAGGauge examines both the retrieved evidence and the quality of the final answer.
+The central idea is simple: **a RAG application should be evaluated not only by the answers it generates, but also by the quality of its retrieval and the evidence supporting those answers.**
 
 ## 🎯 Project Objectives
 
-- Build a RAG pipeline for business knowledge-base question answering.
-- Retrieve relevant information using semantic search.
-- Generate context-grounded responses with a large language model.
-- Evaluate retrieval and generation using LLM-as-a-Judge.
-- Track experiments and inspect evaluation results using LangSmith.
+- Evaluate RAG outputs across multiple quality dimensions.
+- Use an LLM as a judge to assess answer quality.
+- Measure whether generated responses are supported by retrieved context.
+- Track evaluation experiments and inspect results using LangSmith.
+- Identify weaknesses in retrieval and generation instead of relying only on manual testing.
 
 ## ✨ Key Features
 
-- **Semantic Retrieval:** Uses Hugging Face embeddings and FAISS for similarity-based document retrieval.
-- **Context-Grounded Generation:** Uses a Groq-hosted LLM to answer questions using retrieved business information.
-- **LLM-as-a-Judge:** Evaluates responses across four complementary quality dimensions.
-- **Evaluation Dataset:** Supports reusable datasets for repeatable evaluation.
-- **Experiment Tracking:** Integrates LangSmith to run evaluations and inspect traces and results.
-- **Knowledge-Base Question Answering:** Works with structured collections of business documents in Markdown format.
+- **RAG Pipeline:** Retrieves information from a Markdown-based business knowledge base and generates context-aware answers.
+- **Semantic Retrieval:** Uses Hugging Face embeddings and FAISS for vector-based document retrieval.
+- **LLM-as-a-Judge:** Evaluates generated responses against defined quality criteria.
+- **Multi-Dimensional Evaluation:** Assesses correctness, groundedness, answer relevance, and retrieval relevance.
+- **LangSmith Integration:** Organizes evaluation runs, tracks experiments, and provides a place to inspect traces and evaluation results.
+- **Notebook-Based Evaluation:** Provides a notebook workflow for running and understanding the evaluation process.
 
-## 🏗️ System Architecture
+## 🏗️ Architecture
 
 ```text
              Business Knowledge Base
                        |
                        v
-              Document Chunking
+             Document Processing
                        |
                        v
-             Hugging Face Embeddings
+           Hugging Face Embeddings
                        |
                        v
-                  FAISS Index
+                 FAISS Index
+                       |
+User Question -------> Retrieval
                        |
                        v
-                User Question
+             Retrieved Context
                        |
                        v
-                Semantic Search
-                       |
-                       v
-               Retrieved Context
-                       |
-                       v
-               Groq-hosted LLM
+                Groq-hosted LLM
                        |
                        v
                 Generated Answer
                        |
                        v
-               LLM-as-a-Judge
+              LLM-as-a-Judge
                        |
           +------------+------------+
           |            |            |
           v            v            v
-      Correctness  Groundedness  Relevance
+     Correctness   Groundedness   Relevance
                        |
                        v
-               LangSmith Tracking
+              LangSmith Evaluation
+                       |
+                       v
+            Experiments and Results
 ```
 
-*Note: The evaluation pipeline also includes a separate retrieval-relevance evaluator.*
+*Retrieval relevance is evaluated separately to assess the quality of the retrieved evidence.*
 
-## 🔄 How It Works
+## 🔬 Evaluation Methodology
 
-### 1. Knowledge-Base Preparation
+RAGGauge evaluates the pipeline across four dimensions:
 
-The system loads Markdown documents containing business information, including company details, product catalogs, orders, payments, refunds, and service policies.
-
-### 2. Document Chunking and Embedding
-
-The documents are divided into smaller chunks. Hugging Face embeddings convert these text chunks into vector representations that capture semantic information.
-
-### 3. Vector Indexing and Retrieval
-
-FAISS indexes the document vectors and retrieves the most relevant chunks for a user's question using similarity search.
-
-### 4. Context-Grounded Answer Generation
-
-The retrieved context and user question are passed to a Groq-hosted LLM. The model generates an answer based on the available evidence, with instructions to avoid inventing unsupported business information.
-
-### 5. LLM-as-a-Judge Evaluation
-
-The generated response and retrieved context are evaluated using four criteria. This helps identify whether an issue originates from the retrieval stage or the generation stage.
-
-### 6. Experiment Tracking
-
-LangSmith is used to organize evaluation datasets, execute evaluation runs, and inspect traces and results.
-
-## 🧪 Evaluation Methodology
-
-RAGGauge uses four LLM-as-a-Judge evaluators.
-
-| Evaluation Metric | Purpose |
+| Evaluation Metric | What It Measures |
 |---|---|
-| **Correctness** | Measures whether the generated answer is consistent with the reference answer. |
-| **Groundedness** | Checks whether the answer's claims are supported by the retrieved context. |
-| **Answer Relevance** | Evaluates whether the response directly addresses the user's question. |
-| **Retrieval Relevance** | Evaluates whether the retrieved documents provide useful information for answering the question. |
+| **Correctness** | Whether the generated answer is consistent with the reference answer. |
+| **Groundedness** | Whether the answer is supported by the retrieved context. |
+| **Answer Relevance** | Whether the response directly addresses the user's question. |
+| **Retrieval Relevance** | Whether the retrieved document chunks contain information relevant to the question. |
 
-These metrics assess different aspects of RAG performance. A response can be relevant to a question but still contain unsupported claims. Similarly, a fluent answer may be generated from irrelevant retrieved documents.
+These dimensions help distinguish different failure modes. For example, a response may be relevant to a question but still contain unsupported information, or the answer generator may perform poorly because the retriever did not find the necessary evidence.
 
-Using complementary evaluation criteria provides a more informative view of system quality than inspecting generated answers alone.
+## 📊 Experiment Tracking with LangSmith
 
-> **Important:** LLM-as-a-Judge scores are automated assessments, not definitive proof of factual correctness. Their reliability depends on the evaluation criteria, reference answers, context, and judge model.
+**LangSmith is a key part of this project—not just a logging tool, but the workspace for inspecting RAG evaluation experiments.**
+
+The integration supports running evaluations against a LangSmith dataset and examining experiment results and traces.
+
+With LangSmith, you can investigate:
+
+- **Experiment results:** Inspect the outcomes of evaluation runs.
+- **Evaluation scores:** Review the available evaluator outputs for individual examples.
+- **Execution traces:** Follow the pipeline to understand how questions, retrieved context, and generated answers flow through the system.
+- **Failure analysis:** Investigate cases where an answer is incorrect, insufficiently grounded, or poorly supported by retrieved documents.
+- **Experiment comparison:** Compare runs when multiple experiments have been executed and their results are available.
+
+This makes it easier to move beyond testing a few questions manually and systematically investigate the strengths and weaknesses of a RAG pipeline.
+
+> **Note:** LangSmith displays the results produced by the evaluation runs; it does not automatically prove that the system is reliable. Meaningful conclusions depend on the dataset, evaluator quality, and actual experimental results.
 
 ## 🛠️ Technology Stack
 
-| Component | Technology |
+| Technology | Purpose |
 |---|---|
-| Programming Language | Python |
-| LLM Provider | Groq |
-| LLM Framework | LangChain |
-| Embedding Model | Hugging Face Sentence Transformers |
-| Vector Store | FAISS |
-| Evaluation Framework | LangSmith |
-| Development Environment | Jupyter Notebook |
+| Python | Core implementation |
+| LangChain | RAG pipeline components |
+| Hugging Face | Text embeddings |
+| FAISS | Vector indexing and semantic retrieval |
+| Groq | Hosted language model for answer generation |
+| LangSmith | Evaluation datasets, experiment tracking, and trace inspection |
+| Jupyter Notebook | Interactive evaluation workflow |
+| Pytest | Automated testing |
 
-## 📁 Knowledge-Base Coverage
+## 📚 Knowledge Base
 
-The business knowledge base contains Markdown documents covering areas such as:
+The project uses Markdown documents to provide business-related information, including:
 
 - Company overview
 - Product catalog
-- Orders and payments
-- Refunds and cancellations
-- Service delivery and support
-- Subscription and business policies
+- Frequently asked questions
+- Delivery policies
+- Warranty and return policies
 
-These documents provide the reference context used for retrieval and answer generation.
+The knowledge base provides the source material used for retrieval and grounded answer generation.
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- Python 3.12 or a compatible Python version
-- A Groq API key
-- A LangSmith API key for hosted tracing and evaluation tracking
-- The project's knowledge-base files
-
-### 1. Clone the Repository
+### 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
-cd rag-gauge
+git clone https://github.com/jobayertalha/Evaluation-of-Rag.git
+cd Evaluation-of-Rag
 ```
 
-Replace `<your-repository-url>` with your actual repository URL.
-
-### 2. Create a Virtual Environment
+### 2. Create a virtual environment
 
 **Windows PowerShell**
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+.venv\Scripts\Activate.ps1
 ```
 
-### 3. Install Dependencies
+**Linux/macOS**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Ensure the requirements file includes the packages needed by the notebook, including LangChain, Hugging Face embeddings, FAISS, Groq integration, LangSmith, and environment-variable management.
-
-### 4. Configure Environment Variables
+### 4. Configure environment variables
 
 Create a `.env` file in the project root:
 
@@ -179,59 +162,59 @@ GROQ_MODEL=openai/gpt-oss-20b
 LANGSMITH_API_KEY=your_langsmith_api_key
 ```
 
-Use valid credentials and a model available to your Groq account. The model shown is an example configuration.
+Configure any additional LangSmith tracing or project settings required by the implementation.
 
-**Security:** Never commit `.env` or expose API keys in source code, screenshots, or public repositories. Add `.env` to `.gitignore`.
+**Security:** Never commit your `.env` file or expose API keys in notebooks, screenshots, or public repositories.
 
-### 5. Run the Evaluation Notebook
+### 5. Run the RAG application
 
-Open `BusinessMind_RAG_Evaluation_Simple.ipynb` in Jupyter or a compatible editor.
+```bash
+python main.py
+```
 
-1. Select the project's Python environment.
-2. Run the notebook cells sequentially.
-3. Confirm that the knowledge base loads and the RAG pipeline generates a response.
-4. Verify that the evaluation dataset is available.
-5. Run the LLM-as-a-Judge evaluators.
-6. Inspect the resulting evaluation run in LangSmith.
+### 6. Run the evaluation workflow
 
-The notebook filename can be changed to `RAGGauge_Evaluation.ipynb` to match the project name.
+Open the evaluation notebook in Jupyter or your preferred notebook environment and execute its cells in order.
 
-## 📊 Understanding the Results
+The workflow is intended to prepare the RAG pipeline, create or reuse an evaluation dataset, run the evaluators, and send the results to LangSmith for inspection.
 
-Evaluation results should be interpreted across all four metrics rather than relying on a single score.
+Follow the repository's current code and configuration if filenames differ from those shown here.
 
-- **Low correctness:** Review the generated answer against the reference answer.
-- **Low groundedness:** Investigate unsupported claims or insufficient retrieved context.
-- **Low answer relevance:** Examine whether the response addresses the user's actual question.
-- **Low retrieval relevance:** Inspect the retrieved chunks, embedding model, and search configuration.
+## 📈 Understanding the Results
 
-These observations can guide targeted improvements to retrieval, prompting, and generation.
+When reviewing a LangSmith experiment, consider the evaluation dimensions together:
 
-Actual performance should be reported only after the evaluation run has completed successfully and the results have been verified.
+- **Low correctness:** The answer may not match the reference.
+- **Low groundedness:** The answer may contain claims unsupported by the retrieved context.
+- **Low answer relevance:** The response may not adequately address the question.
+- **Low retrieval relevance:** The retriever may be returning irrelevant or insufficient evidence.
 
-## 🔮 Future Improvements
+Use individual examples and traces to investigate why a result occurred rather than relying on a single aggregate score.
 
-- Expand the evaluation dataset with diverse business questions and reference answers.
-- Add retrieval metrics such as Recall@K, Mean Reciprocal Rank (MRR), and Precision@K.
-- Compare embedding models and retrieval configurations.
-- Evaluate different LLMs and prompting strategies.
-- Analyze failure cases and improve the pipeline iteratively.
-- Add regression testing to detect quality changes between versions.
+*Evaluation scores and successful experiment completion should be reported only after verifying the corresponding LangSmith runs.*
+
+## 🔮 Potential Improvements
+
+- Expand the evaluation dataset to cover more questions and edge cases.
+- Add explicit tests for unanswerable questions and missing evidence.
+- Compare retrieval configurations and chunking strategies.
+- Evaluate different embedding models and generation models.
+- Improve evaluator consistency and validate LLM-as-a-Judge decisions against human judgments.
+- Add regression evaluations to detect quality changes between pipeline versions.
 
 ## 💡 Key Takeaway
 
-**A RAG system should be evaluated not only on what it answers, but also on the evidence it retrieves and the reliability of the answer it generates.**
+RAG evaluation requires more than checking whether an answer sounds correct. It requires examining retrieval quality, answer correctness, and whether generated claims are supported by evidence.
 
-RAGGauge explores this principle through a practical workflow that combines semantic retrieval, grounded generation, LLM-as-a-Judge, and experiment tracking.
+**RAGGauge brings these evaluation dimensions together with LangSmith experiment tracking to make RAG behavior easier to inspect, analyze, and improve.**
 
 ## 👨‍💻 Author
 
-**Talha Jobayer Zihan**  
-CSE Graduate | AI/ML Engineer
+**Talha Jobayer Zihan**
 
-- LinkedIn: [talha-jobayer](https://www.linkedin.com/in/talha-jobayer)
-- GitHub: [jobayertalha](https://github.com/jobayertalha)
+- GitHub: [@jobayertalha](https://github.com/jobayertalha)
+- LinkedIn: [talha-jobayer](https://linkedin.com/in/talha-jobayer)
 
 ---
 
-*Built to explore systematic evaluation of Retrieval-Augmented Generation systems.*
+*Built to explore systematic evaluation of Retrieval-Augmented Generation systems using LLM-as-a-Judge and LangSmith.*
